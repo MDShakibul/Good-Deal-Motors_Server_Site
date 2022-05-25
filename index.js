@@ -18,6 +18,7 @@ async function run() {
         await client.connect();
         const productsCollection = client.db('good_deal_motors').collection('products');
         const orderCollection = client.db('good_deal_motors').collection('orders');
+        const reviewCollection = client.db('good_deal_motors').collection('reviews');
         //get all product
         app.get('/product', async (req, res) => {
             const query = {};
@@ -52,6 +53,20 @@ async function run() {
             res.send(order);
           })
 
+          //save review
+          app.post('/review', async (req, res) => {
+            const newReview = req.body;
+            const result = await reviewCollection.insertOne(newReview);
+            res.send(result);
+        })
+
+        //Review
+        app.get('/review', async (req, res) => {
+            const query = {};
+            const cursor = reviewCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+          });
 
     }
     finally{
