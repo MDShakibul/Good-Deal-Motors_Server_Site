@@ -19,6 +19,33 @@ async function run() {
         const productsCollection = client.db('good_deal_motors').collection('products');
         const orderCollection = client.db('good_deal_motors').collection('orders');
         const reviewCollection = client.db('good_deal_motors').collection('reviews');
+
+
+         //make JWT token
+         app.post('/login', async (req, res) => {
+            const user = req.body;
+            const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '1d'
+            });
+            res.send({ accessToken });
+        });
+
+        // JWT token verification
+        function verifyJWT(req, res, next) {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) {
+                return res.status(401).send({ message: 'Unauthorized Access' });
+            }
+            const token = authHeader.split(' ')[1];
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+                if (err) {
+                    return res.status(403).send({ message: 'Forbidden Access' });
+                }
+                req.decoded = decoded;
+                next();
+            });
+        };
+
         //get all product
         app.get('/product', async (req, res) => {
             const query = {};
