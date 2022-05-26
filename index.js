@@ -21,6 +21,7 @@ async function run() {
         const orderCollection = client.db('good_deal_motors').collection('orders');
         const reviewCollection = client.db('good_deal_motors').collection('reviews');
         const userCollection = client.db('good_deal_motors').collection('users');
+        const profileCollection = client.db('good_deal_motors').collection('profile');
 
 
          //make JWT token
@@ -114,10 +115,10 @@ async function run() {
 
           //cancel order by user
 
-        app.delete('/order/:id', async(req, res) => {
+        app.delete('/manageproduct/:id', async(req, res) => {
             const id = req.params.id;
             const query = {_id: ObjectId(id)};
-            const result = await orderCollection.deleteOne(query);
+            const result = await productsCollection.deleteOne(query);
             res.send(result);
         })
 
@@ -144,6 +145,23 @@ async function run() {
                 res.status(403).send({ message: 'Forbidden Access' });
             }
         });
+
+        // checking if admin or normal user & showing route
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email: email });
+            const isAdmin = user.role === 'admin';
+            res.send({ admin: isAdmin });
+        });
+
+        //add product
+        app.post('/manage_product', async (req, res) => {
+            const newProduct = req.body;
+            const result = await productsCollection.insertOne(newProduct);
+            res.send(result);
+        });
+
+        
 
     }
     finally{
