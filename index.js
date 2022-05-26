@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -19,6 +20,7 @@ async function run() {
         const productsCollection = client.db('good_deal_motors').collection('products');
         const orderCollection = client.db('good_deal_motors').collection('orders');
         const reviewCollection = client.db('good_deal_motors').collection('reviews');
+        const userCollection = client.db('good_deal_motors').collection('users');
 
 
          //make JWT token
@@ -45,6 +47,21 @@ async function run() {
                 next();
             });
         };
+
+
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user,
+            };
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+            res.send({ result, token });
+        });
+
 
         //get all product
         app.get('/product', async (req, res) => {
@@ -103,6 +120,30 @@ async function run() {
             const result = await orderCollection.deleteOne(query);
             res.send(result);
         })
+
+        // all users
+        app.get('/user', async (req, res) => {
+            const users = await userCollection.find().toArray();
+            res.send(users);
+        });
+
+        // making admin
+        app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const requester = req.decoded.email;
+            const requesterAccount = await userCollection.findOne({ email: requester });
+            if (requesterAccount.role === 'admin') {
+                const filter = { email: email };
+                const updateDoc = {
+                    $set: { role: 'admin' },
+                };
+                const result = await userCollection.updateOne(filter, updateDoc);
+                res.send(result);
+            }
+            else {
+                res.status(403).send({ message: 'Forbidden Access' });
+            }
+        });
 
     }
     finally{
