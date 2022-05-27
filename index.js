@@ -6,14 +6,13 @@ const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
+const corsOptions = {
+  origin: "*",
+  credentials: true,
+  optionSuccessStatus: 200,
+};
 
-const corsOptions ={
-   origin:'*', 
-   credentials:true,           
-   optionSuccessStatus:200,
-}
-
-app.use(cors(corsOptions)) 
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vhql6d1.mongodb.net/?retryWrites=true&w=majority`;
@@ -67,7 +66,7 @@ async function run() {
         }
       );
     }
-
+    //all user
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
@@ -131,12 +130,19 @@ async function run() {
       res.send(reviews);
     });
 
-    //cancel order by user
-
+    //delete product by admin
     app.delete("/manageproduct/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await productsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    //cancel product by admin
+    app.delete("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
       res.send(result);
     });
 
@@ -165,7 +171,7 @@ async function run() {
       }
     });
 
-    // checking if admin or normal user & showing route
+    // route admin and user
     app.get("/admin/:email", async (req, res) => {
       const email = req.params.email;
       const user = await userCollection.findOne({ email: email });
@@ -180,7 +186,7 @@ async function run() {
       res.send(result);
     });
 
-    //addprofile
+    //add my profile
     app.post("/myprofile", async (req, res) => {
       const newProduct = req.body;
       const result = await profileCollection.insertOne(newProduct);
