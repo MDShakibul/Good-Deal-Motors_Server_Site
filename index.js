@@ -6,7 +6,15 @@ const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.Port || 5000;
 
-app.use(cors());
+
+const cors=require("cors");
+const corsOptions ={
+   origin:'*', 
+   credentials:true,            //access-control-allow-credentials:true
+   optionSuccessStatus:200,
+}
+
+app.use(cors(corsOptions)) // Use this after the variable declaration
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vhql6d1.mongodb.net/?retryWrites=true&w=majority`;
@@ -104,9 +112,7 @@ async function run() {
     //my orders
     app.get("/order", async (req, res) => {
       const email = req.query.user;
-      console.log(email);
       const query = { email: email };
-      console.log(query);
       const order = await orderCollection.find(query).toArray();
       res.send(order);
     });
