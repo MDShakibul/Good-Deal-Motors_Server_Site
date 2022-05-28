@@ -92,6 +92,14 @@ async function run() {
       res.send(products);
     });
 
+    //get all orders
+    app.get("/orders", async (req, res) => {
+      const query = {};
+      const cursor = orderCollection.find(query);
+      const orders = await cursor.toArray();
+      res.send(orders);
+    });
+
     //get product by id
     app.get("/product/:id", async (req, res) => {
       const id = req.params.id;
@@ -115,6 +123,14 @@ async function run() {
       res.send(order);
     });
 
+    //my profile
+    app.get("/show_myprofile", async (req, res) => {
+      const email = req.query.user;
+      const query = { email: email };
+      const myprofile = await profileCollection.find(query).toArray();
+      res.send(myprofile);
+    });
+
     //save review
     app.post("/review", async (req, res) => {
       const newReview = req.body;
@@ -129,12 +145,20 @@ async function run() {
       const reviews = await cursor.toArray();
       res.send(reviews);
     });
-
-    //delete product by admin
+    
+    //delete product by admin 
     app.delete("/manageproduct/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await productsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    //delete product by admin 
+    app.delete("/manageorder/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
       res.send(result);
     });
 
